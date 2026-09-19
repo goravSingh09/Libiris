@@ -2,13 +2,67 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F59E0B'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Libris — Your Library, Anywhere | Digital Public Library</title>
-    <meta name="description" content="Discover, borrow, and read books online at a fraction of the cost of a traditional physical library. Access public-domain classics, academic texts, and knowledge anywhere from ₹5." />
+    
+    <!-- Primary SEO Title & Description -->
+    <title>Libiris - Online Digital Library</title>
+    <meta name="description" content="Libiris is an online digital library where readers can discover, explore, and manage books in one place." />
+    
+    <!-- Search Engine Crawlability -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://libiris-digital.vercel.app/" />
+    
+    <!-- Open Graph Metadata -->
+    <meta property="og:title" content="Libiris - Online Digital Library" />
+    <meta property="og:description" content="Libiris is an online digital library where readers can discover, explore, and manage books in one place." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://libiris-digital.vercel.app/" />
+    <meta property="og:site_name" content="Libiris" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter / X Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Libiris - Online Digital Library" />
+    <meta name="twitter:description" content="Libiris is an online digital library where readers can discover, explore, and manage books in one place." />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F59E0B'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
+    
+    <!-- Preconnect Typography Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://libiris-digital.vercel.app/#website",
+          "url": "https://libiris-digital.vercel.app/",
+          "name": "Libiris",
+          "description": "Libiris is an online digital library where readers can discover, explore, and manage books in one place.",
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://libiris-digital.vercel.app/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "DigitalDocumentLibrary",
+          "@id": "https://libiris-digital.vercel.app/#library",
+          "name": "Libiris",
+          "url": "https://libiris-digital.vercel.app/",
+          "description": "Libiris is an online digital library where readers can discover, explore, and manage books in one place."
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-[#0B0F19] text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
     <div id="root"></div>
