@@ -16,4 +16,4 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: CLIENT_URL
-        sync: false
+        value: https://temporary-instant-pulsar-pxh7818.vercel.app

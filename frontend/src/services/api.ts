@@ -1,6 +1,14 @@
 import { Book, CategoryId, UserProfile, UserLibraryItem } from '../types';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
+const normalizeApiUrl = (url?: string): string => {
+  const base = (url || 'https://libiris-backend.onrender.com').trim().replace(/\/+$/, '');
+  if (base.endsWith('/api')) {
+    return base;
+  }
+  return `${base}/api`;
+};
+
+const API_BASE_URL = normalizeApiUrl((import.meta as any).env?.VITE_API_URL);
 
 class ApiClient {
   private getToken(): string | null {
