@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { connectDB, isDBConnected } from './config/db.js';
+import { autoSeedDatabase } from './seed/autoSeed.js';
+import { Book } from './models/Book.js';
 
 // Route imports
 import authRoutes from './routes/auth.routes.js';
@@ -55,6 +57,12 @@ app.use('/api/library', libraryRoutes);
 app.use('/api/purchases', purchasesRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Seed Route (Triggers initial population of books & categories if empty)
+app.all('/api/seed', async (req, res) => {
+  const result = await autoSeedDatabase();
+  res.json(result);
+});
+
 // 404 Not Found Handler
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });
@@ -72,6 +80,20 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 const startServer = async () => {
   await connectDB();
   
+  if (isDBConnected()) {
+    try {
+      const bookCount = await Book.countDocuments();
+      if (bookCount === 0) {
+        console.log('📦 Connected to MongoDB Atlas but 0 books found. Seeding database automatically...');
+        await autoSeedDatabase();
+      } else {
+        console.log(`📚 MongoDB Atlas active with ${bookCount} books loaded.`);
+      }
+    } catch (e) {
+      console.warn('AutoSeed startup notice:', e);
+    }
+  }
+
   const server = app.listen(PORT, () => {
     console.log(`\n🚀 [Libris Backend Server Running]: http://localhost:${PORT}`);
     console.log(`📡 [CORS Enabled for]: ${clientUrl}`);
