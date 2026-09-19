@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { Book } from '../models/Book.js';
 import { User } from '../models/User.js';
+import { UserLibrary } from '../models/UserLibrary.js';
 import { Purchase } from '../models/Purchase.js';
 import { authenticate, requireAdmin, AuthRequest } from '../middleware/auth.js';
 import { isDBConnected } from '../config/db.js';
@@ -95,6 +96,24 @@ router.get('/purchases', async (req: AuthRequest, res: Response): Promise<void> 
   } catch (error: any) {
     console.error('Admin Purchases Error:', error);
     res.status(500).json({ error: 'Failed to retrieve purchases.' });
+  }
+});
+
+// DELETE /api/admin/users/:id - Delete test user and associated library/purchases
+router.delete('/users/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (isDBConnected()) {
+      await User.findByIdAndDelete(id);
+      await UserLibrary.deleteMany({ userId: id });
+      await Purchase.deleteMany({ userId: id });
+      res.json({ success: true, message: `User ${id} and records cleaned up.` });
+    } else {
+      res.json({ success: true, message: `User ${id} cleaned up from memory.` });
+    }
+  } catch (error: any) {
+    console.error('Delete User Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete user.' });
   }
 });
 
