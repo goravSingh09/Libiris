@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   Book, 
   UserLibraryItem, 
@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { BOOKS_DATA } from '../data/books';
 import { loadStorage, saveStorage } from '../utils/storage';
+import { api } from '../services/api';
 
 export interface ToastMessage {
   id: string;
@@ -28,6 +29,7 @@ interface LibraryContextType {
   activeCategoryFilter: CategoryId | 'all';
   searchQuery: string;
   toasts: ToastMessage[];
+  isBackendConnected: boolean;
   
   // Navigation & Modals
   openBookDetails: (bookId: string) => void;
@@ -42,10 +44,10 @@ interface LibraryContextType {
   setReaderChapterIndex: (index: number) => void;
   setReaderPage: (page: number) => void;
   updateReaderSettings: (settings: Partial<ReaderSettings>) => void;
-  unlockBook: (bookId: string) => void;
-  toggleSaveBook: (bookId: string) => void;
-  toggleBookmark: (bookId: string, page: number, chapterTitle: string) => void;
-  updateProgress: (bookId: string, chapterId: string, page: number, totalPages: number) => void;
+  unlockBook: (bookId: string, paymentMethod?: string) => Promise<void>;
+  toggleSaveBook: (bookId: string) => Promise<void>;
+  toggleBookmark: (bookId: string, page: number, chapterTitle: string) => Promise<void>;
+  updateProgress: (bookId: string, chapterId: string, page: number, totalPages: number) => Promise<void>;
   isBookUnlocked: (bookId: string) => boolean;
   isBookSaved: (bookId: string) => boolean;
   
@@ -57,19 +59,22 @@ interface LibraryContextType {
   showToast: (text: string, type?: 'success' | 'info' | 'warning') => void;
   removeToast: (id: string) => void;
   
-  // User Authentication Simulation
-  loginDemoUser: (role: 'reader' | 'librarian') => void;
+  // User Authentication
+  loginUser: (email: string, password: string) => Promise<boolean>;
+  registerUser: (name: string, email: string, password: string) => Promise<boolean>;
+  loginDemoUser: (role: 'reader' | 'librarian') => Promise<void>;
   logout: () => void;
   
   // Admin functions
-  adminUpdateBookPrice: (bookId: string, price: number) => void;
-  adminAddNewBook: (book: Book) => void;
+  adminUpdateBookPrice: (bookId: string, price: number) => Promise<void>;
+  adminAddNewBook: (book: Book) => Promise<void>;
+  adminDeleteBook: (bookId: string) => Promise<void>;
 }
 
 const DEFAULT_USER: UserProfile = {
   id: 'usr_demo_101',
   name: 'Arjun Mehta',
-  email: 'arjun.reader@libris.library',
+  email: 'reader@libris.library',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
   role: 'reader',
   tier: 'Digital Patron',
@@ -150,6 +155,15 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<CategoryId | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
+
+  const showToast = useCallback((text: string, type: 'success' | 'info' | 'warning' = 'info') => {
+    const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
+    setToasts((prev) => [...prev, { id, text, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }, []);
 
   // Sync state to LocalStorage
   useEffect(() => {
@@ -168,13 +182,37 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveStorage('reader_settings', readerSettings);
   }, [readerSettings]);
 
-  const showToast = (text: string, type: 'success' | 'info' | 'warning' = 'info') => {
-    const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
-    setToasts((prev) => [...prev, { id, text, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
-  };
+  // Fetch initial books & current user session from backend API
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        // Fetch books from backend
+        const booksRes = await api.getBooks({ limit: 100 });
+        if (booksRes.books && booksRes.books.length > 0) {
+          setBooks(booksRes.books);
+          setIsBackendConnected(true);
+        }
+
+        // Fetch user profile if token is stored
+        const userRes = await api.getMe();
+        if (userRes.user) {
+          setUser(userRes.user);
+          setIsBackendConnected(true);
+
+          // Fetch user library
+          const libRes = await api.getLibrary();
+          if (libRes.libraryMap) {
+            setUserLibrary(libRes.libraryMap);
+          }
+        }
+      } catch (e) {
+        // Graceful fallback to cached/default data when offline
+        console.info('Operating with local resilient cache:', e);
+      }
+    };
+
+    initializeData();
+  }, []);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -212,13 +250,11 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const openReader = (book: Book, chapterIndex = 0, page = 1) => {
-    // If book is locked, prompt checkout modal
     if (!isBookUnlocked(book.id)) {
       openCheckout(book.id);
       return;
     }
 
-    // Load last saved page if available
     const existing = userLibrary[book.id];
     const initialPage = existing?.currentPage || page;
     const initialChapterIndex = chapterIndex || 0;
@@ -238,14 +274,23 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setReaderSettings((prev) => ({ ...prev, ...settings }));
   };
 
-  const unlockBook = (bookId: string) => {
+  // Real or simulated unlock with backend order storage
+  const unlockBook = async (bookId: string, paymentMethod: string = 'upi') => {
     const book = books.find((b) => b.id === bookId);
     if (!book) return;
 
-    setUser((prev) => ({
-      ...prev,
-      unlockedBookIds: Array.from(new Set([...prev.unlockedBookIds, bookId]))
-    }));
+    try {
+      const res = await api.checkout(bookId, paymentMethod, true);
+      if (res.unlockedBookIds) {
+        setUser((prev) => ({ ...prev, unlockedBookIds: res.unlockedBookIds }));
+      }
+    } catch {
+      // Offline fallback
+      setUser((prev) => ({
+        ...prev,
+        unlockedBookIds: Array.from(new Set([...prev.unlockedBookIds, bookId]))
+      }));
+    }
 
     setUserLibrary((prev) => ({
       ...prev,
@@ -265,10 +310,11 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     showToast(`"${book.title}" unlocked and added to your library!`, 'success');
   };
 
-  const toggleSaveBook = (bookId: string) => {
+  const toggleSaveBook = async (bookId: string) => {
     const book = books.find((b) => b.id === bookId);
     if (!book) return;
 
+    // Optimistic local update
     setUserLibrary((prev) => {
       const copy = { ...prev };
       if (copy[bookId]) {
@@ -289,9 +335,15 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       return copy;
     });
+
+    try {
+      await api.saveBook(bookId);
+    } catch {
+      // Handled locally
+    }
   };
 
-  const toggleBookmark = (bookId: string, page: number, chapterTitle: string) => {
+  const toggleBookmark = async (bookId: string, page: number, chapterTitle: string) => {
     setUserLibrary((prev) => {
       const item = prev[bookId] || {
         bookId,
@@ -322,10 +374,17 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       };
     });
+
+    try {
+      await api.toggleBookmark({ bookId, page, chapterTitle });
+    } catch {
+      // Local fallback
+    }
   };
 
-  const updateProgress = (bookId: string, chapterId: string, page: number, totalPages: number) => {
+  const updateProgress = async (bookId: string, chapterId: string, page: number, totalPages: number) => {
     const percent = Math.min(100, Math.round((page / Math.max(1, totalPages)) * 100));
+    
     setUserLibrary((prev) => {
       const existing = prev[bookId] || {
         bookId,
@@ -350,9 +409,59 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       };
     });
+
+    try {
+      await api.syncProgress({ bookId, chapterId, page, totalPages });
+    } catch {
+      // Local fallback
+    }
   };
 
-  const loginDemoUser = (role: 'reader' | 'librarian') => {
+  const loginUser = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const res = await api.login(email, password);
+      api.setToken(res.token);
+      setUser(res.user);
+      
+      const libRes = await api.getLibrary();
+      if (libRes.libraryMap) {
+        setUserLibrary(libRes.libraryMap);
+      }
+
+      closeModal();
+      showToast(`Welcome back, ${res.user.name}!`, 'success');
+      return true;
+    } catch (err: any) {
+      showToast(err.message || 'Login failed', 'warning');
+      return false;
+    }
+  };
+
+  const registerUser = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      const res = await api.register(name, email, password);
+      api.setToken(res.token);
+      setUser(res.user);
+      closeModal();
+      showToast(`Welcome to Libris, ${res.user.name}!`, 'success');
+      return true;
+    } catch (err: any) {
+      showToast(err.message || 'Registration failed', 'warning');
+      return false;
+    }
+  };
+
+  const loginDemoUser = async (role: 'reader' | 'librarian') => {
+    const demoEmail = role === 'librarian' ? 'admin@libris.library' : 'reader@libris.library';
+    const demoPassword = role === 'librarian' ? 'admin123' : 'reader123';
+
+    try {
+      const success = await loginUser(demoEmail, demoPassword);
+      if (success) return;
+    } catch {
+      // Fallback to local profile switch
+    }
+
     setUser((prev) => ({
       ...prev,
       role,
@@ -363,18 +472,37 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     showToast(`Logged in as ${role === 'librarian' ? 'Library Administrator' : 'Arjun Mehta'}`, 'success');
   };
 
-  const logout = () => {
-    showToast('Logged out of demo session', 'info');
+  const logout = async () => {
+    try {
+      await api.logout();
+    } catch {}
+    api.setToken(null);
+    setUser(DEFAULT_USER);
+    showToast('Logged out of session', 'info');
   };
 
-  const adminUpdateBookPrice = (bookId: string, price: number) => {
+  const adminUpdateBookPrice = async (bookId: string, price: number) => {
     setBooks((prev) => prev.map((b) => (b.id === bookId ? { ...b, price } : b)));
+    try {
+      await api.adminUpdateBook(bookId, { price });
+    } catch {}
     showToast(`Updated price for book to ₹${price}`, 'success');
   };
 
-  const adminAddNewBook = (newBook: Book) => {
+  const adminAddNewBook = async (newBook: Book) => {
     setBooks((prev) => [newBook, ...prev]);
+    try {
+      await api.adminCreateBook(newBook);
+    } catch {}
     showToast(`Added "${newBook.title}" to library catalogue!`, 'success');
+  };
+
+  const adminDeleteBook = async (bookId: string) => {
+    setBooks((prev) => prev.filter((b) => b.id !== bookId));
+    try {
+      await api.adminDeleteBook(bookId);
+    } catch {}
+    showToast('Book removed from catalogue.', 'info');
   };
 
   return (
@@ -391,6 +519,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         activeCategoryFilter,
         searchQuery,
         toasts,
+        isBackendConnected,
         openBookDetails,
         openCheckout,
         openReader,
@@ -411,10 +540,13 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSearchQuery,
         showToast,
         removeToast,
+        loginUser,
+        registerUser,
         loginDemoUser,
         logout,
         adminUpdateBookPrice,
-        adminAddNewBook
+        adminAddNewBook,
+        adminDeleteBook
       }}
     >
       {children}

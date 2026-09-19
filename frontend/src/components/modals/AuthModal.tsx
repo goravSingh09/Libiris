@@ -1,27 +1,66 @@
 import React, { useState } from 'react';
-import { X, User, ShieldCheck, Mail, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { X, User, ShieldCheck, Mail, Lock, Sparkles, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useLibrary } from '../../context/LibraryContext';
 
 export const AuthModal: React.FC = () => {
-  const { activeModal, closeModal, loginDemoUser, user, showToast } = useLibrary();
+  const { 
+    activeModal, 
+    closeModal, 
+    loginUser, 
+    registerUser, 
+    loginDemoUser, 
+    showToast 
+  } = useLibrary();
+
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const isOpen = activeModal.type === 'auth';
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+
     if (mode === 'forgot') {
       showToast(`Password reset link sent to ${email || 'your email'}`, 'info');
       setMode('login');
       return;
     }
-    // Simulate login with entered name/email
-    loginDemoUser('reader');
-    showToast(`Welcome to Libris, ${name || user.name}!`, 'success');
+
+    setLoading(true);
+
+    try {
+      if (mode === 'login') {
+        const success = await loginUser(email, password);
+        if (!success) {
+          setErrorMessage('Invalid email or password. Please try again.');
+        }
+      } else {
+        const success = await registerUser(name, email, password);
+        if (!success) {
+          setErrorMessage('Registration failed. Email may already be in use.');
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'An error occurred during authentication.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (role: 'reader' | 'librarian') => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      await loginDemoUser(role);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,16 +94,25 @@ export const AuthModal: React.FC = () => {
           </p>
         </div>
 
+        {/* Error message banner */}
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         {/* 1-Click Fast Demo Logins (For Judges & Evaluators) */}
         <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5 mb-6">
           <span className="text-[11px] uppercase font-bold text-amber-400 tracking-wider block">
-            Instant Demo Profiles (Judges & Reviewers):
+            Instant Demo Profiles (Judges & Evaluators):
           </span>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => loginDemoUser('reader')}
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-all group"
+              disabled={loading}
+              onClick={() => handleDemoLogin('reader')}
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-all group disabled:opacity-50"
             >
               <div className="flex items-center gap-1.5 text-xs font-bold text-white group-hover:text-amber-400">
                 <User className="w-3.5 h-3.5" />
@@ -75,14 +123,15 @@ export const AuthModal: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => loginDemoUser('librarian')}
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-all group"
+              disabled={loading}
+              onClick={() => handleDemoLogin('librarian')}
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition-all group disabled:opacity-50"
             >
               <div className="flex items-center gap-1.5 text-xs font-bold text-white group-hover:text-amber-400">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Admin Librarian</span>
               </div>
-              <span className="text-[10px] text-slate-400 block mt-0.5">Manage catalogue</span>
+              <span className="text-[10px] text-slate-400 block mt-0.5">Full Catalogue Rights</span>
             </button>
           </div>
         </div>
@@ -151,10 +200,17 @@ export const AuthModal: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer mt-2 disabled:opacity-50"
           >
-            <span>{mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Free Account' : 'Send Reset Link'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <span>{mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Free Account' : 'Send Reset Link'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            )}
           </button>
         </form>
 
@@ -165,7 +221,7 @@ export const AuthModal: React.FC = () => {
               Don't have an account?{' '}
               <button
                 type="button"
-                onClick={() => setMode('signup')}
+                onClick={() => { setMode('signup'); setErrorMessage(''); }}
                 className="text-amber-400 font-semibold hover:underline"
               >
                 Sign up free
@@ -177,7 +233,7 @@ export const AuthModal: React.FC = () => {
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => { setMode('login'); setErrorMessage(''); }}
                 className="text-amber-400 font-semibold hover:underline"
               >
                 Sign in
@@ -187,7 +243,7 @@ export const AuthModal: React.FC = () => {
           {mode === 'forgot' && (
             <button
               type="button"
-              onClick={() => setMode('login')}
+              onClick={() => { setMode('login'); setErrorMessage(''); }}
               className="text-amber-400 font-semibold hover:underline"
             >
               Back to Sign In

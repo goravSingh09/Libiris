@@ -43,8 +43,8 @@ export const CheckoutModal: React.FC = () => {
     }, 900);
   };
 
-  const handleFinishAndRead = () => {
-    unlockBook(book.id);
+  const handleFinishAndRead = async () => {
+    await unlockBook(book.id, paymentMethod);
     openReader(book);
   };
 
@@ -107,8 +107,8 @@ export const CheckoutModal: React.FC = () => {
                 <span>Start Reading Now</span>
               </button>
               <button
-                onClick={() => {
-                  unlockBook(book.id);
+                onClick={async () => {
+                  await unlockBook(book.id, paymentMethod);
                   closeModal();
                 }}
                 className="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition-colors"

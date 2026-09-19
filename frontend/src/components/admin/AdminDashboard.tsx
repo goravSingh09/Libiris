@@ -6,6 +6,7 @@ import {
   TrendingUp, 
   Plus, 
   Edit3, 
+  Trash2,
   BarChart3, 
   Search, 
   Check, 
@@ -18,7 +19,7 @@ import { Book, CategoryId } from '../../types';
 import { CATEGORIES } from '../../data/categories';
 
 export const AdminDashboard: React.FC = () => {
-  const { books, adminUpdateBookPrice, adminAddNewBook, showToast } = useLibrary();
+  const { books, adminUpdateBookPrice, adminAddNewBook, adminDeleteBook, showToast } = useLibrary();
   const [adminTab, setAdminTab] = useState<'books' | 'categories' | 'analytics' | 'users'>('books');
   const [filterQuery, setFilterQuery] = useState('');
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
@@ -376,7 +377,7 @@ export const AdminDashboard: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 flex items-center gap-2">
                       <button
                         onClick={() => {
                           setEditingPriceId(book.id);
@@ -386,6 +387,13 @@ export const AdminDashboard: React.FC = () => {
                         title="Adjust Price"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => adminDeleteBook(book.id)}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-950 text-slate-400 hover:text-red-400 transition-colors"
+                        title="Delete Book"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
