@@ -16,4 +16,4 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: CLIENT_URL
-        value: https://temporary-instant-pulsar-pxh7818.vercel.app
+        value: https://libiris-digital.vercel.app
