@@ -45,6 +45,19 @@ export const memUsers: MemUser[] = [
     readingStreakDays: 28,
     totalReadingMinutes: 1920,
     totalBooksRead: 45
+  },
+  {
+    _id: 'usr_demo_admin_03',
+    name: 'Chief Librarian Sarah',
+    email: 'admin@libiris.com',
+    passwordHash: bcrypt.hashSync('Password123!', 10),
+    role: 'librarian',
+    tier: 'Digital Patron',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
+    unlockedBookIds: ['frankenstein', 'sherlock-holmes', 'sicp', 'the-art-of-war'],
+    readingStreakDays: 28,
+    totalReadingMinutes: 1920,
+    totalBooksRead: 45
   }
 ];
 

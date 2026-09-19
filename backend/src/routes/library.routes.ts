@@ -104,7 +104,7 @@ router.post('/save/:bookId', async (req: AuthRequest, res: Response): Promise<vo
 router.post('/progress', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = (req.user._id || req.user.id).toString();
-    const { bookId, chapterId, page, totalPages } = req.body;
+    const { bookId, chapterId, page, totalPages, progress } = req.body;
 
     if (!bookId) {
       res.status(400).json({ error: 'Book ID is required.' });
@@ -112,8 +112,17 @@ router.post('/progress', async (req: AuthRequest, res: Response): Promise<void> 
     }
 
     const validTotal = Math.max(1, totalPages || 100);
-    const validPage = Math.max(1, page || 1);
-    const percent = Math.min(100, Math.round((validPage / validTotal) * 100));
+    let validPage = page ? Math.max(1, parseInt(page)) : 1;
+    let percent: number;
+
+    if (progress !== undefined && progress !== null) {
+      percent = Math.min(100, Math.max(0, parseInt(progress) || 0));
+      if (!page) {
+        validPage = Math.max(1, Math.round((percent / 100) * validTotal));
+      }
+    } else {
+      percent = Math.min(100, Math.round((validPage / validTotal) * 100));
+    }
     const status = percent >= 100 ? 'completed' : 'reading';
 
     if (isDBConnected()) {

@@ -14,9 +14,19 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     if (isDBConnected()) {
       const queryObj: any = {};
 
-      if (category && category !== 'all') queryObj.category = category;
-      if (author && author !== 'all') queryObj.author = author;
-      if (language && language !== 'all') queryObj.language = language;
+      if (category && category !== 'all') {
+        const catStr = String(category).trim();
+        queryObj.$or = [
+          { category: new RegExp(`^${catStr}$`, 'i') },
+          { categoryLabel: new RegExp(`^${catStr}$`, 'i') }
+        ];
+      }
+      if (author && author !== 'all') {
+        queryObj.author = new RegExp(`^${String(author).trim()}$`, 'i');
+      }
+      if (language && language !== 'all') {
+        queryObj.language = new RegExp(`^${String(language).trim()}$`, 'i');
+      }
 
       if (price === 'free') {
         queryObj.price = 0;
@@ -28,13 +38,19 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
       if (q && typeof q === 'string' && q.trim()) {
         const searchRegex = new RegExp(q.trim(), 'i');
-        queryObj.$or = [
+        const qOr = [
           { title: searchRegex },
           { author: searchRegex },
           { categoryLabel: searchRegex },
           { synopsis: searchRegex },
           { tags: searchRegex }
         ];
+        if (queryObj.$or) {
+          queryObj.$and = [{ $or: queryObj.$or }, { $or: qOr }];
+          delete queryObj.$or;
+        } else {
+          queryObj.$or = qOr;
+        }
       }
 
       let sortObj: any = { readsCount: -1 };
@@ -66,13 +82,19 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       let filtered = [...memBooks];
 
       if (category && category !== 'all') {
-        filtered = filtered.filter((b) => b.category === category);
+        const catLower = String(category).toLowerCase().trim();
+        filtered = filtered.filter((b) =>
+          (b.category && b.category.toLowerCase() === catLower) ||
+          (b.categoryLabel && b.categoryLabel.toLowerCase() === catLower)
+        );
       }
       if (author && author !== 'all') {
-        filtered = filtered.filter((b) => b.author === author);
+        const authLower = String(author).toLowerCase().trim();
+        filtered = filtered.filter((b) => b.author && b.author.toLowerCase() === authLower);
       }
       if (language && language !== 'all') {
-        filtered = filtered.filter((b) => b.language === language);
+        const langLower = String(language).toLowerCase().trim();
+        filtered = filtered.filter((b) => b.language && b.language.toLowerCase() === langLower);
       }
       if (price === 'free') {
         filtered = filtered.filter((b) => b.price === 0);
