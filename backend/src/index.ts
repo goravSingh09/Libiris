@@ -24,7 +24,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow all vercel domains, localhost, clientUrl, and tool requests
     if (!origin || origin.includes('vercel.app') || origin.includes('localhost') || origin === clientUrl) {
       callback(null, true);

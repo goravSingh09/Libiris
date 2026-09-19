@@ -14,7 +14,7 @@ export const authenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = (req.headers.authorization || req.headers['authorization']) as string | undefined;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.status(401).json({ error: 'Access denied. No authentication token provided.' });
