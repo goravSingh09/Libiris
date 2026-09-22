@@ -19,7 +19,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onExploreCatalog
           Access Knowledge Without the Cost of Ownership
         </h1>
         <p className="text-slate-400 text-base sm:text-lg mt-3 leading-relaxed">
-          Physical libraries have always operated as communal goods. Libris extends this spirit: read public classics for free, and unlock curated reference editions starting from ₹5.
+          Physical libraries have always operated as communal goods. Libiris extends this spirit: read public classics for free, and unlock curated reference editions starting from ₹5.
         </p>
       </div>
 
@@ -176,14 +176,14 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onExploreCatalog
           <div className="space-y-2">
             <h4 className="font-bold text-white">Do unlocked books ever expire?</h4>
             <p className="text-slate-400 leading-relaxed text-xs">
-              No! Once you unlock a book on Libris, it remains permanently accessible in your personal library with all your saved notes and bookmarks.
+              No! Once you unlock a book on Libiris, it remains permanently accessible in your personal library with all your saved notes and bookmarks.
             </p>
           </div>
 
           <div className="space-y-2">
             <h4 className="font-bold text-white">Can I read on multiple devices?</h4>
             <p className="text-slate-400 leading-relaxed text-xs">
-              Yes. Libris operates entirely in the browser with responsive typography, seamlessly functioning across smartphones, tablets, Chromebooks, and desktops.
+              Yes. Libiris operates entirely in the browser with responsive typography, seamlessly functioning across smartphones, tablets, Chromebooks, and desktops.
             </p>
           </div>
 

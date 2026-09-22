@@ -21,11 +21,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigateTab 
                 <BookOpen className="w-5 h-5 text-slate-950 stroke-[2.2]" />
               </div>
               <span className="text-2xl font-bold tracking-tight text-white font-sans">
-                Libris
+                Libiris
               </span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-md">
-              The Digital Public Library. Bringing the timeless sanctuary of physical libraries into the modern browser. Access public-domain treasures, academic literature, and human knowledge anytime, anywhere from ₹5.
+              Libiris is an online digital public library, bringing the timeless sanctuary of physical libraries into the modern browser. Access public-domain treasures, academic literature, and human knowledge anytime, anywhere.
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-400 pt-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">
@@ -43,9 +43,13 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigateTab 
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <button onClick={() => onNavigateTab('library')} className="hover:text-amber-400 transition-colors">
+                <a 
+                  href="/catalogue"
+                  onClick={(e) => { e.preventDefault(); onNavigateTab('library'); }}
+                  className="hover:text-amber-400 transition-colors"
+                >
                   Digital Catalogue (30+ Works)
-                </button>
+                </a>
               </li>
               <li>
                 <button onClick={() => onNavigateTab('my-library')} className="hover:text-amber-400 transition-colors">
@@ -53,9 +57,13 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigateTab 
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigateTab('pricing')} className="hover:text-amber-400 transition-colors">
+                <a 
+                  href="/pricing"
+                  onClick={(e) => { e.preventDefault(); onNavigateTab('pricing'); }}
+                  className="hover:text-amber-400 transition-colors"
+                >
                   Micro-Access Pricing (from ₹5)
-                </button>
+                </a>
               </li>
               <li>
                 <button onClick={() => onNavigateTab('admin')} className="hover:text-amber-400 transition-colors flex items-center gap-1">
@@ -75,15 +83,17 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigateTab 
             <ul className="space-y-2 text-xs">
               {CATEGORIES.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
-                  <button
-                    onClick={() => {
+                  <a
+                    href={`/category/${cat.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
                       onSelectCategory(cat.id);
                       onNavigateTab('library');
                     }}
-                    className="hover:text-amber-400 transition-colors text-left"
+                    className="hover:text-amber-400 transition-colors text-left block"
                   >
                     {cat.name}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -109,7 +119,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onNavigateTab 
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© 2026 Libris Digital Public Library Project. Designed for competition excellence.</p>
+          <p>© 2026 Libiris Digital Public Library Project. Designed for competition excellence.</p>
           <div className="flex items-center gap-2">
             <span>Built with precision</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />

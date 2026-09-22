@@ -82,13 +82,17 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({ onViewAll }) =
 
         {/* View All CTA */}
         <div className="mt-12 text-center">
-          <button
-            onClick={onViewAll}
+          <a
+            href="/catalogue"
+            onClick={(e) => {
+              e.preventDefault();
+              onViewAll();
+            }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-white font-semibold text-sm transition-all shadow-lg hover:shadow-amber-500/10"
           >
             <span>Explore Entire 30+ Volume Library Catalogue</span>
             <ArrowRight className="w-4 h-4 text-amber-400" />
-          </button>
+          </a>
         </div>
 
       </div>

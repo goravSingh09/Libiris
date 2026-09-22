@@ -38,7 +38,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({ onStartReading }) => {
             <span>Simplicity By Design</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            How Libris Works
+            How Libiris Works
           </h2>
           <p className="text-slate-400 text-sm sm:text-base mt-2">
             No registration friction, no multi-week waiting lists, and no cumbersome physical checkouts.

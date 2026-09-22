@@ -230,6 +230,9 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const openBookDetails = (bookId: string) => {
+    if (typeof window !== 'undefined' && window.location.pathname !== `/books/${bookId}`) {
+      window.history.pushState({ modal: 'book_details', bookId }, '', `/books/${bookId}`);
+    }
     setActiveModal({ type: 'book_details', bookId });
   };
 
@@ -246,6 +249,9 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const closeModal = () => {
+    if (typeof window !== 'undefined' && activeModal.type === 'book_details' && window.location.pathname.startsWith('/books/')) {
+      window.history.pushState(null, '', '/catalogue');
+    }
     setActiveModal({ type: 'none' });
   };
 

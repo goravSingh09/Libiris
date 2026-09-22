@@ -63,7 +63,7 @@ export const WhyDigital: React.FC = () => {
             Why Choose a Digital Library?
           </h2>
           <p className="text-slate-400 text-sm sm:text-base mt-3 leading-relaxed">
-            Physical libraries have served humanity for millennia. Libris brings that sacred democratic mission into the modern era—democratizing access for every student, researcher, and reader on Earth.
+            Physical libraries have served humanity for millennia. Libiris brings that sacred democratic mission into the modern era—democratizing access for every student, researcher, and reader on Earth.
           </p>
         </div>
 

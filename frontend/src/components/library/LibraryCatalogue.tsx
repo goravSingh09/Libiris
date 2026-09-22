@@ -131,7 +131,7 @@ export const LibraryCatalogue: React.FC = () => {
             <span>Curated Digital Repository</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Library Catalogue
+            Libiris Book Catalogue
           </h1>
           <p className="text-slate-400 text-sm mt-1">
             Showing <span className="text-white font-semibold">{filteredBooks.length}</span> verified titles across science, literature, history, and computing.
@@ -337,7 +337,16 @@ export const LibraryCatalogue: React.FC = () => {
                           </span>
                         </div>
                         <h3 className="text-base font-bold text-white leading-tight">
-                          {book.title}
+                          <a
+                            href={`/books/${book.id}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              openBookDetails(book.id);
+                            }}
+                            className="hover:text-amber-400 hover:underline"
+                          >
+                            {book.title}
+                          </a>
                         </h3>
                         <p className="text-xs text-slate-400">
                           by <span className="text-slate-300">{book.author}</span> • {book.pageCount} pages • {book.publishedYear > 0 ? book.publishedYear : `${Math.abs(book.publishedYear)} BC`}

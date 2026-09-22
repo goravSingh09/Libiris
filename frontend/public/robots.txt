@@ -3,6 +3,8 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin
+Disallow: /my-library
+Disallow: /checkout
 
 # Sitemap
 Sitemap: https://libiris-digital.vercel.app/sitemap.xml

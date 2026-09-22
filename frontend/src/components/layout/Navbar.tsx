@@ -44,8 +44,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
         <div className="flex items-center justify-between h-20">
           
           {/* Brand Logo */}
-          <button 
-            onClick={() => { setCurrentTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          <a 
+            href="/"
+            onClick={(e) => { e.preventDefault(); setCurrentTab('home'); }}
             className="flex items-center gap-3 group text-left focus:outline-none"
           >
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
@@ -54,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-2xl font-bold tracking-tight text-white font-sans">
-                  Libris
+                  Libiris
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
                   Digital
@@ -64,12 +65,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 The Digital Public Library
               </span>
             </div>
-          </button>
+          </a>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800/80">
-            <button
-              onClick={() => setCurrentTab('home')}
+            <a
+              href="/"
+              onClick={(e) => { e.preventDefault(); setCurrentTab('home'); }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 currentTab === 'home'
                   ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/25'
@@ -77,9 +79,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               }`}
             >
               Discover
-            </button>
-            <button
-              onClick={() => setCurrentTab('library')}
+            </a>
+            <a
+              href="/catalogue"
+              onClick={(e) => { e.preventDefault(); setCurrentTab('library'); }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 currentTab === 'library'
                   ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/25'
@@ -87,9 +90,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               }`}
             >
               Catalogue
-            </button>
-            <button
-              onClick={() => setCurrentTab('pricing')}
+            </a>
+            <a
+              href="/pricing"
+              onClick={(e) => { e.preventDefault(); setCurrentTab('pricing'); }}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 currentTab === 'pricing'
                   ? 'bg-amber-500 text-slate-950 font-semibold shadow-md shadow-amber-500/25'
@@ -97,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               }`}
             >
               Access & Pricing
-            </button>
+            </a>
             <button
               onClick={() => setCurrentTab('my-library')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${

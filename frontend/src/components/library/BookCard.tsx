@@ -110,7 +110,16 @@ export const BookCard: React.FC<BookCardProps> = ({ book, compact = false }) => 
           </div>
 
           <h3 className="font-bold text-white text-base leading-snug group-hover:text-amber-400 transition-colors line-clamp-1">
-            {book.title}
+            <a 
+              href={`/books/${book.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                openBookDetails(book.id);
+              }}
+              className="hover:underline focus:outline-none"
+            >
+              {book.title}
+            </a>
           </h3>
           <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
             by <span className="text-slate-300">{book.author}</span>

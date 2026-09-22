@@ -50,7 +50,7 @@ export const ComparisonSection: React.FC<ComparisonSectionProps> = ({ onOpenLibr
             <span>Factual Comparative Analysis</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Traditional Library vs. Libris Digital
+            Traditional Library vs. Libiris Digital
           </h2>
           <p className="text-slate-400 text-sm sm:text-base mt-2">
             While we honor physical libraries as civil institutions, digital accessibility dissolves barriers of physical distance, restricted hours, and shelf limits.
@@ -69,7 +69,7 @@ export const ComparisonSection: React.FC<ComparisonSectionProps> = ({ onOpenLibr
             </div>
             <div className="md:col-span-4 text-amber-400 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-              <span>Libris Digital Library</span>
+              <span>Libiris Digital Library</span>
             </div>
           </div>
 

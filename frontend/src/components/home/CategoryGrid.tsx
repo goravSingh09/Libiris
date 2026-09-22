@@ -67,10 +67,14 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({ onSelectCategory }) 
             const icon = ICON_MAP[cat.iconName] || <BookOpen className="w-6 h-6" />;
 
             return (
-              <button
+              <a
                 key={cat.id}
-                onClick={() => onSelectCategory(cat.id)}
-                className="group relative flex flex-col p-4 rounded-2xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-500/50 transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/5"
+                href={`/category/${cat.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onSelectCategory(cat.id);
+                }}
+                className="group relative flex flex-col p-4 rounded-2xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-500/50 transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/5 cursor-pointer block"
               >
                 {/* Category Icon */}
                 <div 
@@ -94,7 +98,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({ onSelectCategory }) 
                   <span>Browse</span>
                   <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                 </div>
-              </button>
+              </a>
             );
           })}
         </div>

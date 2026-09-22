@@ -19,6 +19,8 @@ import { CheckoutModal } from './components/modals/CheckoutModal';
 import { GlobalSearchModal } from './components/modals/GlobalSearchModal';
 import { AuthModal } from './components/modals/AuthModal';
 import { CategoryId } from './types';
+import { updateSEO } from './utils/seo';
+import { CATEGORIES } from './data/categories';
 
 const MainAppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'home' | 'library' | 'my-library' | 'pricing' | 'admin'>('home');
@@ -26,9 +28,89 @@ const MainAppContent: React.FC = () => {
     books, 
     openReader, 
     openSearch, 
+    openBookDetails,
+    activeModal,
     setActiveCategoryFilter, 
     activeReaderBook 
   } = useLibrary();
+
+  // Sync route on popstate and initial page load
+  useEffect(() => {
+    const syncRouteFromLocation = () => {
+      const pathname = window.location.pathname;
+
+      if (pathname === '/catalogue' || pathname === '/library') {
+        setCurrentTab('library');
+        updateSEO({
+          title: 'Book Catalogue - Libiris Online Digital Library',
+          description: 'Browse and search digital public books, academic texts, and classic literature on Libiris online digital library.',
+          canonicalUrl: 'https://libiris-digital.vercel.app/catalogue',
+        });
+      } else if (pathname === '/pricing') {
+        setCurrentTab('pricing');
+        updateSEO({
+          title: 'Pricing & Micro-Access - Libiris Online Digital Library',
+          description: 'Read public classics for free, and unlock curated reference editions starting from ₹5 on Libiris digital library.',
+          canonicalUrl: 'https://libiris-digital.vercel.app/pricing',
+        });
+      } else if (pathname.startsWith('/category/')) {
+        const catId = pathname.replace('/category/', '').trim() as CategoryId;
+        const catInfo = CATEGORIES.find((c) => c.id === catId);
+        if (catInfo) {
+          setActiveCategoryFilter(catId);
+          setCurrentTab('library');
+          updateSEO({
+            title: `${catInfo.name} Books - Libiris Online Digital Library`,
+            description: `Explore curated ${catInfo.name} books and classics on Libiris online digital library. ${catInfo.description}.`,
+            canonicalUrl: `https://libiris-digital.vercel.app/category/${catId}`,
+          });
+        }
+      } else if (pathname.startsWith('/books/')) {
+        const bookId = pathname.replace('/books/', '').trim();
+        const book = books.find((b) => b.id === bookId);
+        if (book) {
+          openBookDetails(book.id);
+        }
+      } else if (pathname === '/' || pathname === '') {
+        setCurrentTab('home');
+        updateSEO();
+      }
+    };
+
+    syncRouteFromLocation();
+    window.addEventListener('popstate', syncRouteFromLocation);
+    return () => window.removeEventListener('popstate', syncRouteFromLocation);
+  }, [books, openBookDetails, setActiveCategoryFilter]);
+
+  // Sync SEO metadata whenever book details modal is active
+  useEffect(() => {
+    if (activeModal.type === 'book_details' && activeModal.bookId) {
+      const book = books.find((b) => b.id === activeModal.bookId);
+      if (book) {
+        updateSEO({
+          title: `${book.title} by ${book.author} - Libiris Online Digital Library`,
+          description: `${book.title} by ${book.author}. ${book.synopsis}`,
+          canonicalUrl: `https://libiris-digital.vercel.app/books/${book.id}`,
+          ogType: 'book',
+          jsonLd: {
+            '@context': 'https://schema.org',
+            '@type': 'Book',
+            name: book.title,
+            author: {
+              '@type': 'Person',
+              name: book.author,
+            },
+            description: book.synopsis,
+            isbn: book.isbn,
+            numberOfPages: book.pageCount,
+            inLanguage: book.language,
+            isAccessibleForFree: book.isPublicDomain || book.price === 0,
+            url: `https://libiris-digital.vercel.app/books/${book.id}`,
+          },
+        });
+      }
+    }
+  }, [activeModal, books]);
 
   // Global keyboard shortcut: Ctrl+K or Cmd+K to open Search
   useEffect(() => {
@@ -42,9 +124,45 @@ const MainAppContent: React.FC = () => {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [openSearch]);
 
+  const handleTabChange = (tab: 'home' | 'library' | 'my-library' | 'pricing' | 'admin') => {
+    setCurrentTab(tab);
+    if (tab === 'home') {
+      window.history.pushState(null, '', '/');
+      updateSEO();
+    } else if (tab === 'library') {
+      window.history.pushState(null, '', '/catalogue');
+      updateSEO({
+        title: 'Book Catalogue - Libiris Online Digital Library',
+        description: 'Browse and search digital public books, academic texts, and classic literature on Libiris online digital library.',
+        canonicalUrl: 'https://libiris-digital.vercel.app/catalogue',
+      });
+    } else if (tab === 'pricing') {
+      window.history.pushState(null, '', '/pricing');
+      updateSEO({
+        title: 'Pricing & Micro-Access - Libiris Online Digital Library',
+        description: 'Read public classics for free, and unlock curated reference editions starting from ₹5 on Libiris digital library.',
+        canonicalUrl: 'https://libiris-digital.vercel.app/pricing',
+      });
+    } else if (tab === 'my-library') {
+      window.history.pushState(null, '', '/my-library');
+    } else if (tab === 'admin') {
+      window.history.pushState(null, '', '/admin');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSelectCategoryFromHome = (catId: CategoryId) => {
     setActiveCategoryFilter(catId);
     setCurrentTab('library');
+    window.history.pushState(null, '', `/category/${catId}`);
+    const catInfo = CATEGORIES.find((c) => c.id === catId);
+    if (catInfo) {
+      updateSEO({
+        title: `${catInfo.name} Books - Libiris Online Digital Library`,
+        description: `Explore curated ${catInfo.name} books and classics on Libiris online digital library. ${catInfo.description}.`,
+        canonicalUrl: `https://libiris-digital.vercel.app/category/${catId}`,
+      });
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -59,30 +177,21 @@ const MainAppContent: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 selection:bg-amber-500/30 selection:text-amber-200">
       
       {/* Top Navbar */}
-      <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      <Navbar currentTab={currentTab} setCurrentTab={handleTabChange} />
 
       {/* Main Content Sections */}
       <main className="flex-1">
         {currentTab === 'home' && (
           <>
             <Hero 
-              onExplore={() => {
-                setCurrentTab('library');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onExplore={() => handleTabChange('library')}
               onReadFeatured={handleStartFeaturedReading}
             />
             <CategoryGrid onSelectCategory={handleSelectCategoryFromHome} />
-            <TrendingSection onViewAll={() => {
-              setCurrentTab('library');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} />
+            <TrendingSection onViewAll={() => handleTabChange('library')} />
             <WhyDigital />
             <HowItWorks onStartReading={handleStartFeaturedReading} />
-            <ComparisonSection onOpenLibrary={() => {
-              setCurrentTab('library');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} />
+            <ComparisonSection onOpenLibrary={() => handleTabChange('library')} />
           </>
         )}
 
@@ -91,17 +200,11 @@ const MainAppContent: React.FC = () => {
         )}
 
         {currentTab === 'my-library' && (
-          <MyLibrary onExploreCatalog={() => {
-            setCurrentTab('library');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }} />
+          <MyLibrary onExploreCatalog={() => handleTabChange('library')} />
         )}
 
         {currentTab === 'pricing' && (
-          <PricingSection onExploreCatalog={() => {
-            setCurrentTab('library');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }} />
+          <PricingSection onExploreCatalog={() => handleTabChange('library')} />
         )}
 
         {currentTab === 'admin' && (
@@ -112,10 +215,7 @@ const MainAppContent: React.FC = () => {
       {/* Global Footer */}
       <Footer 
         onSelectCategory={handleSelectCategoryFromHome}
-        onNavigateTab={(tab) => {
-          setCurrentTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigateTab={handleTabChange}
       />
 
       {/* Modals & Overlays */}

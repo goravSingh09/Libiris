@@ -67,7 +67,7 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onReadFeatured }) => {
                 </span>
               </h1>
               <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
-                Discover, borrow, and read books online at a fraction of the cost of a traditional library. Public-domain treasures, academic texts, and timeless literature at your fingertips from ₹5.
+                Libiris is an online digital library where readers can discover, explore, and read books online at a fraction of the cost of a traditional physical library. Access public-domain classics, academic texts, and timeless literature at your fingertips.
               </p>
             </div>
 
@@ -113,13 +113,17 @@ export const Hero: React.FC<HeroProps> = ({ onExplore, onReadFeatured }) => {
 
             {/* Primary Action Buttons */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
-              <button
-                onClick={onExplore}
+              <a
+                href="/catalogue"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onExplore();
+                }}
                 className="px-7 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-base transition-all duration-200 shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer"
               >
                 <BookOpen className="w-5 h-5 stroke-[2.2]" />
                 <span>Explore Catalogue</span>
-              </button>
+              </a>
 
               <button
                 onClick={onReadFeatured}
