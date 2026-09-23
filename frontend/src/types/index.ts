@@ -71,14 +71,17 @@ export interface UserLibraryItem {
 }
 
 export type ReaderTheme = 'light' | 'sepia' | 'dark' | 'night';
-export type ReaderFont = 'serif' | 'sans' | 'mono';
-export type ReaderFontSize = 'sm' | 'md' | 'lg' | 'xl';
+export type ReaderFont = 'serif' | 'sans' | 'mono' | 'dyslexic';
+export type ReaderFontSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type ReaderMargin = 'compact' | 'standard' | 'generous';
 
 export interface ReaderSettings {
   theme: ReaderTheme;
   font: ReaderFont;
   fontSize: ReaderFontSize;
   lineHeight: 'normal' | 'relaxed' | 'loose';
+  margin?: ReaderMargin;
+  soundEnabled?: boolean;
   isSpeechActive: boolean;
 }
 

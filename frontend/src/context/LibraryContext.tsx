@@ -10,6 +10,7 @@ import {
 import { BOOKS_DATA } from '../data/books';
 import { loadStorage, saveStorage } from '../utils/storage';
 import { api } from '../services/api';
+import { getBookContent } from '../data/fullBooks/index';
 
 export interface ToastMessage {
   id: string;
@@ -46,7 +47,7 @@ interface LibraryContextType {
   updateReaderSettings: (settings: Partial<ReaderSettings>) => void;
   unlockBook: (bookId: string, paymentMethod?: string) => Promise<void>;
   toggleSaveBook: (bookId: string) => Promise<void>;
-  toggleBookmark: (bookId: string, page: number, chapterTitle: string) => Promise<void>;
+  toggleBookmark: (bookId: string, page: number, chapterTitle: string, note?: string) => Promise<void>;
   updateProgress: (bookId: string, chapterId: string, page: number, totalPages: number) => Promise<void>;
   isBookUnlocked: (bookId: string) => boolean;
   isBookSaved: (bookId: string) => boolean;
@@ -132,6 +133,8 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   font: 'serif',
   fontSize: 'md',
   lineHeight: 'relaxed',
+  margin: 'standard',
+  soundEnabled: true,
   isSpeechActive: false
 };
 
@@ -261,19 +264,33 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return;
     }
 
+    const contentResult = getBookContent(book);
+    const enrichedBook: Book = {
+      ...book,
+      chapters: contentResult.chapters
+    };
+
     const existing = userLibrary[book.id];
     const initialPage = existing?.currentPage || page;
     const initialChapterIndex = chapterIndex || 0;
 
-    setActiveReaderBook(book);
+    setActiveReaderBook(enrichedBook);
     setActiveReaderChapterIndex(initialChapterIndex);
     setActiveReaderPage(initialPage);
     closeModal();
-    showToast(`Opened "${book.title}" in digital reader`, 'info');
+
+    if (typeof window !== 'undefined' && window.location.pathname !== `/read/${book.id}`) {
+      window.history.pushState({ reader: true, bookId: book.id }, '', `/read/${book.id}`);
+    }
+
+    showToast(`Opened "${book.title}" in realistic digital reader`, 'info');
   };
 
   const closeReader = () => {
     setActiveReaderBook(null);
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/read/')) {
+      window.history.pushState(null, '', '/catalogue');
+    }
   };
 
   const updateReaderSettings = (settings: Partial<ReaderSettings>) => {
@@ -349,7 +366,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const toggleBookmark = async (bookId: string, page: number, chapterTitle: string) => {
+  const toggleBookmark = async (bookId: string, page: number, chapterTitle: string, note?: string) => {
     setUserLibrary((prev) => {
       const item = prev[bookId] || {
         bookId,
@@ -365,7 +382,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const hasBookmark = item.bookmarks.some((b) => b.page === page);
       const updatedBookmarks = hasBookmark
         ? item.bookmarks.filter((b) => b.page !== page)
-        : [...item.bookmarks, { page, chapterTitle, date: 'Just now' }];
+        : [...item.bookmarks, { page, chapterTitle, note: note || '', date: 'Just now' }];
 
       showToast(
         hasBookmark ? `Removed bookmark on page ${page}` : `Saved bookmark on page ${page}`,
@@ -382,7 +399,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
 
     try {
-      await api.toggleBookmark({ bookId, page, chapterTitle });
+      await api.toggleBookmark({ bookId, page, chapterTitle, note });
     } catch {
       // Local fallback
     }

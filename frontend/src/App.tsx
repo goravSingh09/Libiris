@@ -27,6 +27,7 @@ const MainAppContent: React.FC = () => {
   const { 
     books, 
     openReader, 
+    closeReader,
     openSearch, 
     openBookDetails,
     activeModal,
@@ -41,6 +42,7 @@ const MainAppContent: React.FC = () => {
 
       if (pathname === '/catalogue' || pathname === '/library') {
         setCurrentTab('library');
+        if (activeReaderBook) closeReader();
         updateSEO({
           title: 'Book Catalogue - Libiris Online Digital Library',
           description: 'Browse and search digital public books, academic texts, and classic literature on Libiris online digital library.',
@@ -48,6 +50,7 @@ const MainAppContent: React.FC = () => {
         });
       } else if (pathname === '/pricing') {
         setCurrentTab('pricing');
+        if (activeReaderBook) closeReader();
         updateSEO({
           title: 'Pricing & Micro-Access - Libiris Online Digital Library',
           description: 'Read public classics for free, and unlock curated reference editions starting from ₹5 on Libiris digital library.',
@@ -56,6 +59,7 @@ const MainAppContent: React.FC = () => {
       } else if (pathname.startsWith('/category/')) {
         const catId = pathname.replace('/category/', '').trim() as CategoryId;
         const catInfo = CATEGORIES.find((c) => c.id === catId);
+        if (activeReaderBook) closeReader();
         if (catInfo) {
           setActiveCategoryFilter(catId);
           setCurrentTab('library');
@@ -63,6 +67,20 @@ const MainAppContent: React.FC = () => {
             title: `${catInfo.name} Books - Libiris Online Digital Library`,
             description: `Explore curated ${catInfo.name} books and classics on Libiris online digital library. ${catInfo.description}.`,
             canonicalUrl: `https://libiris-digital.vercel.app/category/${catId}`,
+          });
+        }
+      } else if (pathname.startsWith('/read/')) {
+        const bookId = pathname.replace('/read/', '').trim();
+        const book = books.find((b) => b.id === bookId);
+        if (book && (!activeReaderBook || activeReaderBook.id !== book.id)) {
+          openReader(book);
+        }
+        if (book) {
+          updateSEO({
+            title: `Reading ${book.title} - Libiris Online Digital Reader`,
+            description: `Read ${book.title} by ${book.author} in the realistic, distraction-free Libiris digital book reader.`,
+            canonicalUrl: `https://libiris-digital.vercel.app/read/${book.id}`,
+            ogType: 'book',
           });
         }
       } else if (pathname.startsWith('/books/')) {
@@ -73,6 +91,7 @@ const MainAppContent: React.FC = () => {
         }
       } else if (pathname === '/' || pathname === '') {
         setCurrentTab('home');
+        if (activeReaderBook) closeReader();
         updateSEO();
       }
     };
