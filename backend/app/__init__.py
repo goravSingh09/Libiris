@@ -47,6 +47,15 @@ def create_app(config_class=Config):
     app.register_blueprint(reports_bp, url_prefix="/api/v1/reports")
     app.register_blueprint(dashboard_bp, url_prefix="/api/v1/dashboard")
 
+    @app.route("/", methods=["GET"])
+    def index():
+        return jsonify({
+            "service": "SBLMS - Shree Bala Ji Adhyayan Kendra Library API",
+            "status": "healthy",
+            "health_check": "/api/health",
+            "version": "1.0.0"
+        })
+
     # Consistent JSON Error Handlers
     @app.errorhandler(400)
     def bad_request(e):
