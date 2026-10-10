@@ -1,262 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { LibraryProvider, useLibrary } from './context/LibraryContext';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
-import { Footer } from './components/layout/Footer';
-import { ToastContainer } from './components/layout/ToastContainer';
-import { Hero } from './components/home/Hero';
-import { CategoryGrid } from './components/home/CategoryGrid';
-import { TrendingSection } from './components/home/TrendingSection';
-import { WhyDigital } from './components/home/WhyDigital';
-import { HowItWorks } from './components/home/HowItWorks';
-import { ComparisonSection } from './components/home/ComparisonSection';
-import { LibraryCatalogue } from './components/library/LibraryCatalogue';
-import { MyLibrary } from './components/dashboard/MyLibrary';
-import { PricingSection } from './components/pricing/PricingSection';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-import { DigitalReader } from './components/reader/DigitalReader';
-import { BookDetailsModal } from './components/modals/BookDetailsModal';
-import { CheckoutModal } from './components/modals/CheckoutModal';
-import { GlobalSearchModal } from './components/modals/GlobalSearchModal';
-import { AuthModal } from './components/modals/AuthModal';
-import { CategoryId } from './types';
-import { updateSEO } from './utils/seo';
-import { CATEGORIES } from './data/categories';
+import { AdminLayout } from './components/layout/AdminLayout';
+import { StudentLayout } from './components/layout/StudentLayout';
 
-const MainAppContent: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<'home' | 'library' | 'my-library' | 'pricing' | 'admin'>('home');
-  const { 
-    books, 
-    openReader, 
-    closeReader,
-    openSearch, 
-    openBookDetails,
-    activeModal,
-    setActiveCategoryFilter, 
-    activeReaderBook 
-  } = useLibrary();
+// Public Pages
+import { LandingPage } from './pages/public/LandingPage';
+import { AdmissionPage } from './pages/public/AdmissionPage';
+import { AdminLoginPage } from './pages/public/AdminLoginPage';
+import { StudentLoginPage } from './pages/public/StudentLoginPage';
+import { ForgotPasswordPage } from './pages/public/ForgotPasswordPage';
 
-  // Sync route on popstate and initial page load
-  useEffect(() => {
-    const syncRouteFromLocation = () => {
-      const pathname = window.location.pathname;
+// Admin Pages
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdmissionsManagementPage } from './pages/admin/AdmissionsManagementPage';
+import { StudentsManagementPage } from './pages/admin/StudentsManagementPage';
+import { SeatMapPage } from './pages/admin/SeatMapPage';
+import { FeeManagementPage } from './pages/admin/FeeManagementPage';
+import { AttendanceManagementPage } from './pages/admin/AttendanceManagementPage';
+import { ReportsPage } from './pages/admin/ReportsPage';
+import { AuditLogsPage } from './pages/admin/AuditLogsPage';
 
-      if (pathname === '/catalogue' || pathname === '/library') {
-        setCurrentTab('library');
-        if (activeReaderBook) closeReader();
-        updateSEO({
-          title: 'Book Catalogue - Libiris Online Digital Library',
-          description: 'Browse and search digital public books, academic texts, and classic literature on Libiris online digital library.',
-          canonicalUrl: 'https://libiris-digital.vercel.app/catalogue',
-        });
-      } else if (pathname === '/pricing') {
-        setCurrentTab('pricing');
-        if (activeReaderBook) closeReader();
-        updateSEO({
-          title: 'Pricing & Micro-Access - Libiris Online Digital Library',
-          description: 'Read public classics for free, and unlock curated reference editions starting from ₹5 on Libiris digital library.',
-          canonicalUrl: 'https://libiris-digital.vercel.app/pricing',
-        });
-      } else if (pathname.startsWith('/category/')) {
-        const catId = pathname.replace('/category/', '').trim() as CategoryId;
-        const catInfo = CATEGORIES.find((c) => c.id === catId);
-        if (activeReaderBook) closeReader();
-        if (catInfo) {
-          setActiveCategoryFilter(catId);
-          setCurrentTab('library');
-          updateSEO({
-            title: `${catInfo.name} Books - Libiris Online Digital Library`,
-            description: `Explore curated ${catInfo.name} books and classics on Libiris online digital library. ${catInfo.description}.`,
-            canonicalUrl: `https://libiris-digital.vercel.app/category/${catId}`,
-          });
-        }
-      } else if (pathname.startsWith('/read/')) {
-        const bookId = pathname.replace('/read/', '').trim();
-        const book = books.find((b) => b.id === bookId);
-        if (book && (!activeReaderBook || activeReaderBook.id !== book.id)) {
-          openReader(book);
-        }
-        if (book) {
-          updateSEO({
-            title: `Reading ${book.title} - Libiris Online Digital Reader`,
-            description: `Read ${book.title} by ${book.author} in the realistic, distraction-free Libiris digital book reader.`,
-            canonicalUrl: `https://libiris-digital.vercel.app/read/${book.id}`,
-            ogType: 'book',
-          });
-        }
-      } else if (pathname.startsWith('/books/')) {
-        const bookId = pathname.replace('/books/', '').trim();
-        const book = books.find((b) => b.id === bookId);
-        if (book) {
-          openBookDetails(book.id);
-        }
-      } else if (pathname === '/' || pathname === '') {
-        setCurrentTab('home');
-        if (activeReaderBook) closeReader();
-        updateSEO();
-      }
-    };
+// Student Pages
+import { StudentDashboardPage } from './pages/student/StudentDashboardPage';
+import { StudentFeesPage } from './pages/student/StudentFeesPage';
+import { StudentAttendancePage } from './pages/student/StudentAttendancePage';
+import { StudentProfilePage } from './pages/student/StudentProfilePage';
 
-    syncRouteFromLocation();
-    window.addEventListener('popstate', syncRouteFromLocation);
-    return () => window.removeEventListener('popstate', syncRouteFromLocation);
-  }, [books, openBookDetails, setActiveCategoryFilter]);
+// Guard for Admin Routes
+const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, userType, isLoading } = useAuth();
+  if (isLoading) return <div className="p-12 text-center text-xs">Verifying credentials...</div>;
+  if (!user || userType !== 'admin') {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return <>{children}</>;
+};
 
-  // Sync SEO metadata whenever book details modal is active
-  useEffect(() => {
-    if (activeModal.type === 'book_details' && activeModal.bookId) {
-      const book = books.find((b) => b.id === activeModal.bookId);
-      if (book) {
-        updateSEO({
-          title: `${book.title} by ${book.author} - Libiris Online Digital Library`,
-          description: `${book.title} by ${book.author}. ${book.synopsis}`,
-          canonicalUrl: `https://libiris-digital.vercel.app/books/${book.id}`,
-          ogType: 'book',
-          jsonLd: {
-            '@context': 'https://schema.org',
-            '@type': 'Book',
-            name: book.title,
-            author: {
-              '@type': 'Person',
-              name: book.author,
-            },
-            description: book.synopsis,
-            isbn: book.isbn,
-            numberOfPages: book.pageCount,
-            inLanguage: book.language,
-            isAccessibleForFree: book.isPublicDomain || book.price === 0,
-            url: `https://libiris-digital.vercel.app/books/${book.id}`,
-          },
-        });
-      }
-    }
-  }, [activeModal, books]);
+// Guard for Student Routes
+const RequireStudent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, userType, isLoading } = useAuth();
+  if (isLoading) return <div className="p-12 text-center text-xs">Verifying credentials...</div>;
+  if (!user || userType !== 'student') {
+    return <Navigate to="/student/login" replace />;
+  }
+  return <>{children}</>;
+};
 
-  // Global keyboard shortcut: Ctrl+K or Cmd+K to open Search
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        openSearch();
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [openSearch]);
-
-  const handleTabChange = (tab: 'home' | 'library' | 'my-library' | 'pricing' | 'admin') => {
-    setCurrentTab(tab);
-    if (tab === 'home') {
-      window.history.pushState(null, '', '/');
-      updateSEO();
-    } else if (tab === 'library') {
-      window.history.pushState(null, '', '/catalogue');
-      updateSEO({
-        title: 'Book Catalogue - Libiris Online Digital Library',
-        description: 'Browse and search digital public books, academic texts, and classic literature on Libiris online digital library.',
-        canonicalUrl: 'https://libiris-digital.vercel.app/catalogue',
-      });
-    } else if (tab === 'pricing') {
-      window.history.pushState(null, '', '/pricing');
-      updateSEO({
-        title: 'Pricing & Micro-Access - Libiris Online Digital Library',
-        description: 'Read public classics for free, and unlock curated reference editions starting from ₹5 on Libiris digital library.',
-        canonicalUrl: 'https://libiris-digital.vercel.app/pricing',
-      });
-    } else if (tab === 'my-library') {
-      window.history.pushState(null, '', '/my-library');
-    } else if (tab === 'admin') {
-      window.history.pushState(null, '', '/admin');
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSelectCategoryFromHome = (catId: CategoryId) => {
-    setActiveCategoryFilter(catId);
-    setCurrentTab('library');
-    window.history.pushState(null, '', `/category/${catId}`);
-    const catInfo = CATEGORIES.find((c) => c.id === catId);
-    if (catInfo) {
-      updateSEO({
-        title: `${catInfo.name} Books - Libiris Online Digital Library`,
-        description: `Explore curated ${catInfo.name} books and classics on Libiris online digital library. ${catInfo.description}.`,
-        canonicalUrl: `https://libiris-digital.vercel.app/category/${catId}`,
-      });
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleStartFeaturedReading = () => {
-    const defaultBook = books.find((b) => b.id === 'frankenstein') || books[0];
-    if (defaultBook) {
-      openReader(defaultBook);
-    }
-  };
-
+export const App: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 selection:bg-amber-500/30 selection:text-amber-200">
-      
-      {/* Top Navbar */}
-      <Navbar currentTab={currentTab} setCurrentTab={handleTabChange} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes with Navbar */}
+          <Route
+            path="/"
+            element={
+              <>
+                <Navbar />
+                <LandingPage />
+              </>
+            }
+          />
+          <Route
+            path="/admission"
+            element={
+              <>
+                <Navbar />
+                <AdmissionPage />
+              </>
+            }
+          />
 
-      {/* Main Content Sections */}
-      <main className="flex-1">
-        {currentTab === 'home' && (
-          <>
-            <Hero 
-              onExplore={() => handleTabChange('library')}
-              onReadFeatured={handleStartFeaturedReading}
-            />
-            <CategoryGrid onSelectCategory={handleSelectCategoryFromHome} />
-            <TrendingSection onViewAll={() => handleTabChange('library')} />
-            <WhyDigital />
-            <HowItWorks onStartReading={handleStartFeaturedReading} />
-            <ComparisonSection onOpenLibrary={() => handleTabChange('library')} />
-          </>
-        )}
+          {/* Auth Routes */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/student/login" element={<StudentLoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        {currentTab === 'library' && (
-          <LibraryCatalogue />
-        )}
+          {/* Protected Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <AdminLayout />
+              </RequireAdmin>
+            }
+          >
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="admissions" element={<AdmissionsManagementPage />} />
+            <Route path="students" element={<StudentsManagementPage />} />
+            <Route path="seats" element={<SeatMapPage />} />
+            <Route path="fees" element={<FeeManagementPage />} />
+            <Route path="attendance" element={<AttendanceManagementPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="audit-logs" element={<AuditLogsPage />} />
+          </Route>
 
-        {currentTab === 'my-library' && (
-          <MyLibrary onExploreCatalog={() => handleTabChange('library')} />
-        )}
+          {/* Protected Student Routes */}
+          <Route
+            path="/student"
+            element={
+              <RequireStudent>
+                <StudentLayout />
+              </RequireStudent>
+            }
+          >
+            <Route index element={<Navigate to="/student/dashboard" replace />} />
+            <Route path="dashboard" element={<StudentDashboardPage />} />
+            <Route path="fees" element={<StudentFeesPage />} />
+            <Route path="attendance" element={<StudentAttendancePage />} />
+            <Route path="profile" element={<StudentProfilePage />} />
+          </Route>
 
-        {currentTab === 'pricing' && (
-          <PricingSection onExploreCatalog={() => handleTabChange('library')} />
-        )}
-
-        {currentTab === 'admin' && (
-          <AdminDashboard />
-        )}
-      </main>
-
-      {/* Global Footer */}
-      <Footer 
-        onSelectCategory={handleSelectCategoryFromHome}
-        onNavigateTab={handleTabChange}
-      />
-
-      {/* Modals & Overlays */}
-      <BookDetailsModal />
-      <CheckoutModal />
-      <GlobalSearchModal />
-      <AuthModal />
-
-      {/* Standout Distraction-Free Digital Reader */}
-      {activeReaderBook && <DigitalReader />}
-
-      {/* Toast Feedback */}
-      <ToastContainer />
-
-    </div>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 
-export default function App() {
-  return (
-    <LibraryProvider>
-      <MainAppContent />
-    </LibraryProvider>
-  );
-}
+export default App;

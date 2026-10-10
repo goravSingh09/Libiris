@@ -1,6 +1,30 @@
-node_modules
-dist
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+
+# Local databases
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Private uploaded documents
+storage/
+tests/temp_storage/
+
+# Node leftovers
+node_modules/
+dist/
 *.log

@@ -1,10 +1,9 @@
-# https://www.robotstxt.org/robotstxt.html
+# SBLMS - Shree Bala Ji Adhyayan Kendra Library
 User-agent: *
 Allow: /
-Disallow: /api/
+Allow: /admission
 Disallow: /admin
-Disallow: /my-library
-Disallow: /checkout
+Disallow: /student
+Disallow: /api/
 
-# Sitemap
-Sitemap: https://libiris-digital.vercel.app/sitemap.xml
+Sitemap: https://sblms.vercel.app/sitemap.xml

@@ -1,186 +1,211 @@
-# 📚 Libris — The Digital Public Library (Full-Stack Edition)
+# SBLMS — Shree Bala Ji Adhyayan Kendra Library Management System
 
-> **"Your Library, Anywhere. Millions of Pages. One Library."**
+[![React](https://img.shields.io/badge/Frontend-React%2018%20%7C%20TypeScript%20%7C%20Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Python](https://img.shields.io/badge/Backend-Python%203%20%7C%20Flask%203.1-3776AB?logo=python&logoColor=white)](https://flask.palletsprojects.com/)
+[![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy%202.0-red)](https://www.sqlalchemy.org/)
+[![Database](https://img.shields.io/badge/Database-SQLite%20%28Dev%29%20%7C%20PostgreSQL%20%28Prod%29-336791?logo=postgresql&logoColor=white)](https://postgresql.org/)
+[![ReportLab](https://img.shields.io/badge/PDF%20Engine-ReportLab%205.0-blue)](https://www.reportlab.com/)
+[![Pytest](https://img.shields.io/badge/Testing-Pytest%20%28100%25%20Passed%29-0A9EDC?logo=pytest&logoColor=white)](https://pytest.org/)
 
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.21-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20Ready-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-amber.svg)](LICENSE)
-
-Libris is a full-stack digital public library platform built to democratize access to world literature, foundational science, computing textbooks, and competitive exam preparation.
+A full-stack, enterprise-grade Library Management System custom-engineered for **Shree Bala Ji Adhyayan Kendra Library**, located at Opp. Mali Samaj, Hari Om Market, Didwana Road, Nagaur (Rajasthan).
 
 ---
 
-## 🏗️ Architecture & Monorepo Structure
+## 🏛️ System Overview
+
+**SBLMS** streamlines library operations, administrative governance, and student self-service across a 120-seat physical study facility:
+- **Public Portal**: Showcase library amenities (air conditioning, high-speed fiber Wi-Fi, CCTV, purified RO water, parking), real hours (5:00 AM – 10:00 PM), and online admission registration with multi-file uploads.
+- **Admin Command Center**: Real-time KPI cards, Recharts cash collection and attendance trends, interactive 120-desk seat allocation grid, admission reviews, daily bulk attendance, auditable fee management, CSV report exports, and audit logging.
+- **Strict Cash-Only Fee Management**: Complies strictly with cash-at-desk operating requirements—**zero external payment gateways, zero QR verification, zero checkout integrations**. Invoices track total, paid, and outstanding balances. Admins record cash receipts, generating official ReportLab PDF receipts on demand.
+- **Student Portal**: Secure member credential activation, attendance calendar with monthly percentages, fee ledger with one-click PDF cash receipt downloads, and profile management.
+- **Private Document Vault**: Private storage of Aadhaar documents and student photos outside public web roots with JWT-authenticated streaming.
+- **Legacy Migration & Preservation**: Bit-for-bit backup with SHA-256 validation of the original SQLite database (`library.db`), existing student profiles, password hashes, desk assignments, and 62 uploaded verification documents.
+
+---
+
+## 📐 Architecture & Monorepo Structure
 
 ```text
 webbuild/
-├── frontend/                   # React 18, Vite, Tailwind CSS SPA
+├── frontend/                       # React 18 + TypeScript + Vite + Tailwind SPA
+│   ├── public/                     # Static assets (logo.png, banner.png)
 │   ├── src/
-│   │   ├── components/         # Hero, Reader, Catalogue, Dashboard, Modals
-│   │   ├── context/            # LibraryContext with backend API synchronization
-│   │   ├── services/           # api.ts (REST client with JWT Authorization headers)
-│   │   └── types/              # TypeScript interfaces
+│   │   ├── components/layout/      # Navbar, AdminLayout (sidebar + desk stats), StudentLayout
+│   │   ├── context/                # AuthContext (JWT session management, RBAC)
+│   │   ├── pages/
+│   │   │   ├── public/             # LandingPage, AdmissionPage, AdminLoginPage, StudentLoginPage, ForgotPasswordPage
+│   │   │   ├── admin/              # AdminDashboard, AdmissionsManagement, SeatMap, FeeManagement, 
+│   │   │   │                       # StudentsManagement, AttendanceManagement, Reports, AuditLogs
+│   │   │   └── student/            # StudentDashboard, StudentFees, StudentAttendance, StudentProfile
+│   │   ├── services/               # api.ts (Axios/fetch client with JWT headers & error handling)
+│   │   ├── types/                  # sblms.ts (Complete TypeScript schema definitions)
+│   │   └── utils/                  # seo.ts (Dynamic meta tags & Schema.org JSON-LD)
+│   ├── index.html                  # SEO-optimized entry with SBLMS branding & structured data
 │   ├── package.json
 │   └── vite.config.ts
-├── backend/                    # Express + TypeScript REST API Server
-│   ├── src/
-│   │   ├── config/             # MongoDB Atlas connection & MemoryStore fallback
-│   │   ├── models/             # Mongoose schemas (User, Book, Category, UserLibrary, Purchase)
-│   │   ├── middleware/         # JWT Auth & Admin RBAC verification
-│   │   ├── routes/             # auth, books, categories, library, purchases, admin
-│   │   ├── seed/               # seed.ts (32 curated books, 12 disciplines, demo users)
-│   │   └── index.ts            # Main server entry with Helmet, CORS, and error handlers
-│   ├── .env.example            # Environment variables template
-│   ├── package.json
-│   └── tsconfig.json
-└── package.json                # Monorepo scripts (concurrent execution)
+├── backend/                        # Python Flask REST API
+│   ├── app/
+│   │   ├── config.py               # Multi-environment config (SQLite dev / PostgreSQL prod)
+│   │   ├── models/                 # SQLAlchemy ORM (Admin, Student, Seat, Invoice, Payment, Attendance, AuditLog)
+│   │   ├── routes/                 # Blueprints (auth, students, documents, seats, fees, receipts, attendance, reports, dashboard, health)
+│   │   ├── services/               # Business logic (auth, student IDs, seat grid, cash fees, ReportLab PDF, attendance, reports, audit)
+│   │   └── __init__.py             # Flask application factory with CORS, error handlers, and DB initialization
+│   ├── data/                       # Local SQLite persistent storage (sblms.db)
+│   ├── storage/uploads/            # Private student documents (photos & Aadhaar scans)
+│   ├── tests/                      # Automated test suite (test_all_features.py, conftest.py)
+│   ├── requirements.txt            # Python dependencies (Flask, SQLAlchemy, ReportLab, pytest, gunicorn, etc.)
+│   ├── run.py                      # Local development server entry (Port 5000)
+│   └── wsgi.py                     # Production WSGI entry for Gunicorn
+├── backups/                        # Legacy database and document backups with SHA-256 manifests
+│   └── legacy_backup_20261010/     # Original library.db, documents, and manifest
+├── scripts/                        # Operational scripts
+│   ├── backup_legacy.py            # Automated backup utility
+│   ├── migrate_legacy.py           # Legacy database migration pipeline
+│   ├── verify_migration.py         # 100% data integrity validation script
+│   └── bootstrap_admin.py          # Super Admin creation utility
+├── render.yaml                     # Render.com Python backend deployment specification
+├── vercel.json                     # Vercel SPA routing and header configuration
+└── package.json                    # Monorepo command runner
 ```
+
+---
+
+## 🔒 Security & Privacy Controls
+
+1. **Role-Based Access Control (RBAC)**:
+   - Super Admin & Admin JWT tokens access management routes.
+   - Student tokens are restricted strictly to their own student ID endpoints (`/api/v1/students/<id>/*`).
+2. **Private Document Storage**:
+   - Uploaded Aadhaar cards and photos are saved in `backend/storage/uploads/` (outside any public web folder).
+   - Served exclusively via `/api/v1/students/<id>/documents/<doc_type>` which validates JWT ownership or administrative role.
+3. **Password Security**:
+   - Passwords hashed using PBKDF2 with SHA-256 salt via Werkzeug security.
+   - Legacy hashes from original database preserved bit-for-bit.
+4. **Audit Logging**:
+   - All critical actions (admissions, seat allocations, cash fee recordings, and payment reversals) are permanently recorded in `AuditLog` with actor ID, IP address, and before/after payloads.
+
+---
+
+## 💵 Strict Cash-Only Fee Architecture
+
+In accordance with institutional guidelines:
+- **No Online Payment Gateways**: Razorpay, Stripe, and checkout buttons are completely excluded.
+- **Cash Recording**: Authorized administrators record physical cash payments against invoices.
+- **Invoice Balance Tracking**: The system calculates `paid_amount` and `balance_amount` automatically. Overpayments beyond the invoice balance are rejected.
+- **Auditable Reversals**: Payments can be reversed by administrators with a mandatory reason note, immediately recalculating the invoice status and logging an audit entry.
+- **Official PDF Receipts**: Generated dynamically using ReportLab with the official library header, student registration number, desk number, amount in Indian Rupees, payment mode (Cash), and cashier signature line.
 
 ---
 
 ## 🚀 Local Development Setup
 
 ### 1. Prerequisites
-- **Node.js**: v18+ (tested on Node v24)
-- **npm**: v9+
+- **Python**: 3.10+ (tested on Python 3.13)
+- **Node.js**: 18+ (tested on Node v24)
+- **npm**: 9+
 
-### 2. Install Dependencies
-Run from the root repository directory:
+### 2. Backend Setup
 ```bash
-npm run install:all
-```
-*(Or `cd frontend && npm install` and `cd ../backend && npm install`)*.
-
-### 3. Configure Environment Variables
-Inside `backend/`, copy `.env.example` to `.env`:
-```bash
+# Navigate to backend directory
 cd backend
-cp .env.example .env
-```
-Populate `.env` with your values:
-```env
-PORT=5000
-NODE_ENV=development
-DATABASE_URL=mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/libris?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_super_secret_key_change_in_production
-CLIENT_URL=http://localhost:5173
-```
-> **Note on Database**: If `DATABASE_URL` is left blank during initial local testing, the backend will automatically initialize its built-in in-memory fallback store so all routes, demo logins, and catalog searches work immediately without errors.
 
-### 4. Seed the Database
-To populate MongoDB with the 32 curated volumes and 12 disciplines:
-```bash
-npm run seed
+# Create and activate virtual environment (optional but recommended)
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run database setup & bootstrap admin (if starting fresh)
+python ../scripts/bootstrap_admin.py
+
+# Start Flask development server (runs on http://localhost:5000)
+python run.py
 ```
 
-### 5. Start Frontend and Backend Concurrently
-From the root directory:
+### 3. Frontend Setup
 ```bash
+# In a separate terminal, navigate to frontend directory
+cd frontend
+
+# Install Node modules
+npm install
+
+# Start Vite dev server (runs on http://localhost:5173)
 npm run dev
 ```
-- **Frontend URL**: [http://localhost:5173](http://localhost:5173)
-- **Backend API**: [http://localhost:5000/api](http://localhost:5000/api)
-- **Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+
+### 4. Running Concurrently from Root
+From the repository root:
+```bash
+npm install
+npm run dev
+```
 
 ---
 
-## 🔑 Demo Credentials (Judges & Evaluators)
+## 🧪 Testing & Quality Assurance
 
-| Role | Email | Password | Privileges |
-| :--- | :--- | :--- | :--- |
-| **Reader (Patron)** | `reader@libris.library` | `reader123` | Full reader, bookmarks, library sync |
-| **Administrator** | `admin@libris.library` | `admin123` | Ingest books, live price edits, analytics |
+Run the comprehensive automated test suite:
+```bash
+pytest backend/tests -v
+```
 
-*(You can also register any new account using the Sign Up form).*
-
----
-
-## 📡 REST API Documentation
-
-### Authentication (`/api/auth`)
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Register new user (bcrypt password hashing) | No |
-| `POST` | `/api/auth/login` | Authenticate user & return JWT token | No |
-| `GET` | `/api/auth/me` | Fetch logged-in user profile & streaks | **Yes (Bearer JWT)** |
-| `POST` | `/api/auth/logout` | Terminate session | No |
-
-### Books Catalogue (`/api/books`)
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/books` | Search (`?q=`), filter (`?category=`, `?price=`), sort, and paginate | No |
-| `GET` | `/api/books/:id` | Fetch single book with full chapters & reviews | No |
-| `POST` | `/api/books` | Ingest new book record | **Admin Only** |
-| `PUT` | `/api/books/:id` | Update book details / adjust pricing | **Admin Only** |
-| `DELETE` | `/api/books/:id` | Remove book from catalogue | **Admin Only** |
-
-### Categories (`/api/categories`)
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/categories` | Retrieve all 12 discipline taxonomies | No |
-
-### User Library & Reading Sync (`/api/library`)
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/library` | Fetch user's reading list, progress, and bookmarks | **Yes** |
-| `POST` | `/api/library/save/:bookId` | Toggle save/wishlist for a book | **Yes** |
-| `POST` | `/api/library/progress` | Sync active page, chapter, and % complete | **Yes** |
-| `POST` | `/api/library/bookmark` | Add or remove page bookmark with note | **Yes** |
-
-### Purchases & Micro-Access (`/api/purchases`)
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/purchases/checkout` | Unlock book (Free or ₹5–₹20 Micro-Pass) | **Yes** |
-| `GET` | `/api/purchases/my` | View user order history & transactions | **Yes** |
-
-### Admin Dashboard Metrics (`/api/admin`)
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/admin/metrics` | Platform totals, reads, micro-revenue, uptime | **Admin Only** |
-| `GET` | `/api/admin/users` | List registered accounts | **Admin Only** |
-| `GET` | `/api/admin/purchases`| Audit all purchase transactions | **Admin Only** |
+### Test Coverage Highlights
+| Test Area | Description | Status |
+|:---|:---|:---:|
+| `test_health_check` | Health check probe `/api/health` returns status healthy | ✅ PASSED |
+| `test_admin_login_success` | Super admin login with JWT issuance | ✅ PASSED |
+| `test_admin_login_invalid_credentials` | Brute force/bad password rejection | ✅ PASSED |
+| `test_submit_admission` | Multi-field admission form submission with document validation | ✅ PASSED |
+| `test_duplicate_admission_prevention` | Prevents duplicate applications with same mobile | ✅ PASSED |
+| `test_admin_approve_admission` | Approval allocates unique sequential `SBLxxxx` ID | ✅ PASSED |
+| `test_seat_allocation_and_release` | Grid validation, occupancy assignment, and seat release | ✅ PASSED |
+| `test_record_cash_payment` | Physical cash recording, invoice balance reconciliation, receipt generation | ✅ PASSED |
+| `test_prevent_overpayment` | Validates cash amount does not exceed invoice balance | ✅ PASSED |
+| `test_receipt_pdf_generation` | Validates ReportLab PDF stream with valid `%PDF` signature | ✅ PASSED |
+| `test_attendance_logging` | Daily attendance recording and monthly percentage calculation | ✅ PASSED |
+| `test_private_document_access_control`| Validates unauthorized document stream blocking | ✅ PASSED |
+| `test_generate_students_csv_report` | CSV export of student directory with valid headers | ✅ PASSED |
 
 ---
 
-## 🌐 Free-Tier Production Deployment Guide
+## 🌐 Production Deployment
 
-### 1. Database: MongoDB Atlas (Free M0 Cluster)
-1. Sign up at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas).
-2. Create a free shared cluster (**M0 Free Tier**).
-3. Under **Network Access**, add `0.0.0.0/0` (allow from anywhere).
-4. Under **Database Access**, create a database user with username and password.
-5. Click **Connect** > **Drivers** > copy the connection string:
-   `mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/libris?retryWrites=true&w=majority`
+### Backend (Render.com)
+The included `render.yaml` automates the Python backend and PostgreSQL deployment:
+1. Connect your GitHub repository to Render.
+2. Render creates:
+   - A Web Service (`sblms-backend`) running `gunicorn wsgi:app`.
+   - A PostgreSQL Database (`sblms-postgres`).
+3. Set environment variables:
+   - `FRONTEND_URL`: Your deployed frontend domain (e.g. `https://sblms.vercel.app`).
+   - `JWT_SECRET_KEY`: Secure random string.
+   - `SECRET_KEY`: Secure random string.
 
-### 2. Backend: Render / Railway / Koyeb (Free Tier)
-1. Create a new **Web Service** pointing to your GitHub repository: `https://github.com/goravSingh09/Libiris`.
-2. Set **Root Directory** to `backend`.
-3. Set **Build Command**: `npm install && npm run build`.
-4. Set **Start Command**: `npm start`.
-5. Add Environment Variables:
-   - `DATABASE_URL` = *(Your MongoDB Atlas connection string)*
-   - `JWT_SECRET` = *(A secure random string)*
-   - `CLIENT_URL` = *(Your Vercel frontend URL, e.g. https://libris.vercel.app)*
-   - `PORT` = `5000`
-
-### 3. Frontend: Vercel (Free Tier)
-1. Go to [vercel.com](https://vercel.com) and import `goravSingh09/Libiris`.
-2. In Project Settings, set **Root Directory** to `frontend`.
-3. Set Environment Variable:
-   - `VITE_API_URL` = `https://your-backend-service.onrender.com/api`
-4. Click **Deploy**. Vercel will build and serve the application globally with automatic SSL.
+### Frontend (Vercel)
+The included `vercel.json` configures single-page application routing and caching:
+1. Import repository on Vercel.
+2. Root Directory: `frontend` (or project root with output directory `frontend/dist`).
+3. Environment Variable:
+   - `VITE_API_URL`: Your Render backend URL (e.g. `https://sblms-backend.onrender.com/api/v1`).
+4. Deploy.
 
 ---
 
-## 📜 Ethical Compliance & Open Access
+## 📍 Contact & Institution Details
 
-All featured literature consists of verified public-domain literary canon or openly licensed educational frameworks. Commercial payment gateways are isolated from test/demo simulation to ensure no unauthorized micro-charges are initiated during competition judging.
+- **Institution**: Shree Bala Ji Adhyayan Kendra Library
+- **Address**: Opp. Mali Samaj, Hari Om Market, Didwana Road, Nagaur (Rajasthan) — 341001
+- **Phones**: +91 9413402116 / +91 8290167664
+- **Email**: shreebalajilibrary2116@gmail.com
+- **Operating Hours**: 5:00 AM – 10:00 PM (Monday through Sunday)
 
 ---
 
 ## 📄 License
-Licensed under the [MIT License](LICENSE).
+This project is proprietary and built exclusively for Shree Bala Ji Adhyayan Kendra Library. All rights reserved.

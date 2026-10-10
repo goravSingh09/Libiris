@@ -1,20 +1,20 @@
 /**
  * Pure lightweight utility for client-side dynamic SEO and Schema.org JSON-LD updates.
- * Zero external libraries, zero overhead.
+ * Shree Bala Ji Adhyayan Kendra Library Management System (SBLMS)
  */
 
 export interface SEOData {
   title?: string;
   description?: string;
   canonicalUrl?: string;
-  ogType?: 'website' | 'book';
+  ogType?: 'website';
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const DEFAULT_TITLE = 'Libiris - Online Digital Library';
+const DEFAULT_TITLE = 'SBLMS — Shree Bala Ji Adhyayan Kendra Library';
 const DEFAULT_DESCRIPTION =
-  'Libiris is an online digital library where readers can discover, explore, and manage books in one place.';
-const BASE_URL = 'https://libiris-digital.vercel.app';
+  'Shree Bala Ji Adhyayan Kendra Library Management System (SBLMS) — Dedicated reading rooms, ergonomic seats, air-conditioned study environment, and student portal in Nagaur, Rajasthan.';
+const BASE_URL = 'https://sblms.vercel.app';
 
 export function updateSEO(data: SEOData = {}): void {
   const title = data.title || DEFAULT_TITLE;
@@ -36,7 +36,7 @@ export function updateSEO(data: SEOData = {}): void {
   setMetaTag('property', 'og:description', description);
   setMetaTag('property', 'og:url', canonicalUrl);
   setMetaTag('property', 'og:type', ogType);
-  setMetaTag('property', 'og:site_name', 'Libiris');
+  setMetaTag('property', 'og:site_name', 'Shree Bala Ji Adhyayan Kendra Library');
 
   // 5. Twitter Card Tags
   setMetaTag('name', 'twitter:title', title);
@@ -46,37 +46,42 @@ export function updateSEO(data: SEOData = {}): void {
   if (data.jsonLd) {
     setJsonLd(data.jsonLd);
   } else {
-    // Reset to default WebSite + DigitalDocumentLibrary JSON-LD
     setJsonLd({
       '@context': 'https://schema.org',
-      '@graph': [
+      '@type': 'Library',
+      name: 'Shree Bala Ji Adhyayan Kendra Library',
+      description: DEFAULT_DESCRIPTION,
+      url: BASE_URL,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Opp. Mali Samaj, Hari Om Market, Didwana Road',
+        addressLocality: 'Nagaur',
+        addressRegion: 'Rajasthan',
+        postalCode: '341001',
+        addressCountry: 'IN'
+      },
+      telephone: '+91 9413402116',
+      openingHoursSpecification: [
         {
-          '@type': 'WebSite',
-          '@id': `${BASE_URL}/#website`,
-          url: `${BASE_URL}/`,
-          name: 'Libiris',
-          description: DEFAULT_DESCRIPTION,
-          inLanguage: 'en-US',
-          potentialAction: {
-            '@type': 'SearchAction',
-            target: `${BASE_URL}/?q={search_term_string}`,
-            'query-input': 'required name=search_term_string',
-          },
-        },
-        {
-          '@type': 'DigitalDocumentLibrary',
-          '@id': `${BASE_URL}/#library`,
-          name: 'Libiris',
-          url: `${BASE_URL}/`,
-          description: DEFAULT_DESCRIPTION,
-        },
-      ],
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday'
+          ],
+          opens: '05:00',
+          closes: '22:00'
+        }
+      ]
     });
   }
 }
 
 function setMetaTag(attributeName: 'name' | 'property', attributeValue: string, content: string): void {
-  // Never modify google-site-verification
   if (attributeValue === 'google-site-verification') return;
 
   let element = document.querySelector(`meta[${attributeName}="${attributeValue}"]`);

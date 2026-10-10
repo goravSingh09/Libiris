@@ -1,0 +1,13 @@
+Flask==3.1.2
+Flask-SQLAlchemy==3.1.1
+Flask-Cors==6.0.5
+SQLAlchemy==2.0.51
+Werkzeug==3.1.4
+pyjwt==2.15.1
+reportlab==5.0.1
+openpyxl==3.1.5
+pytest==9.1.1
+python-dotenv==1.2.4
+Pillow==12.2.0
+gunicorn>=21.2.0
+psycopg2-binary>=2.9.9
