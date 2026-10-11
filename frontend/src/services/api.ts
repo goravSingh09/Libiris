@@ -8,7 +8,19 @@ import {
   StudentDashboardData
 } from '../types/sblms';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getApiBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim() !== '') {
+    return import.meta.env.VITE_API_URL.trim();
+  }
+  if (import.meta.env.PROD) {
+    // Production default: use relative /api proxy on Vercel
+    return '/api';
+  }
+  // Local development default
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 function getAuthHeaders(isFormData = false): HeadersInit {
   const token = localStorage.getItem('sblms_token');

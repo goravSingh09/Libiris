@@ -32,6 +32,10 @@
       "destination": "/sitemap.xml"
     },
     {
+      "source": "/api/(.*)",
+      "destination": "https://libiris-backend.onrender.com/api/$1"
+    },
+    {
       "source": "/((?!assets/|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }

@@ -1,0 +1,10 @@
+{
+  "name": "sblms-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shree Bala Ji Adhyayan Kendra Library Management System WSGI Backend",
+  "scripts": {
+    "build": "pip install -r requirements.txt || pip3 install -r requirements.txt || true",
+    "start": "gunicorn wsgi:app --bind 0.0.0.0:$PORT || python3 wsgi.py || python run.py"
+  }
+}
