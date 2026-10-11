@@ -8,6 +8,7 @@
     "dev:backend": "python backend/run.py",
     "dev:frontend": "npm run dev --prefix frontend",
     "build": "npm run build --prefix frontend",
+    "start": "gunicorn wsgi:app --bind 0.0.0.0:$PORT || python wsgi.py",
     "test:backend": "python -m pytest backend/tests -v",
     "install:frontend": "npm install --prefix frontend"
   },
