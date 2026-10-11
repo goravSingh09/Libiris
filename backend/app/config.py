@@ -12,9 +12,9 @@ class Config:
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "sblms_jwt_secret_2026_shree_balaji")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.environ.get("JWT_EXPIRATION_HOURS", 24)))
 
-    # Database: Use DATABASE_URL if provided (e.g. Postgres on Render/Heroku/Railway), otherwise local SQLite
-    database_url = os.environ.get("DATABASE_URL")
-    if database_url:
+    # Database: Use DATABASE_URL or POSTGRES_URL if provided (e.g. Postgres on Render/Heroku/Railway), otherwise local SQLite
+    database_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+    if database_url and not database_url.startswith(("mongodb://", "mongodb+srv://")):
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
         SQLALCHEMY_DATABASE_URI = database_url
