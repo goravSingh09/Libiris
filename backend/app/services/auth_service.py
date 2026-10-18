@@ -57,3 +57,20 @@ def consume_reset_token(raw_token: str, new_password: str) -> tuple[bool, str]:
     token_entry.used_at = datetime.now(timezone.utc)
     db.session.commit()
     return True, "Password reset successfully"
+
+def ensure_admin_initialized():
+    import os
+    admin = Admin.query.filter_by(username="admin").first()
+    if not admin:
+        initial_pwd = os.environ.get("INITIAL_ADMIN_PASSWORD", "admin123")
+        admin = Admin(
+            full_name="System Administrator",
+            username="admin",
+            email="admin@sblms.library",
+            role="Super Admin",
+            is_active=True
+        )
+        admin.set_password(initial_pwd)
+        db.session.add(admin)
+        db.session.commit()
+
