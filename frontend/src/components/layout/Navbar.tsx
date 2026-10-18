@@ -38,9 +38,6 @@ export const Navbar: React.FC = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-sm font-medium text-slate-200 hover:text-gold-400 transition-colors">
-              Home & Facilities
-            </Link>
             <Link to="/admission" className="text-sm font-medium text-slate-200 hover:text-gold-400 transition-colors">
               Online Admission
             </Link>
